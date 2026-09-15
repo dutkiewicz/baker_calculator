@@ -1,8 +1,8 @@
 package com.bakersmath.domain
 
-enum class HydrationPreset(val percent: Float, val style: String) {
-    STIFF(60f, "Stiff"),
-    STANDARD(65f, "Standard"),
-    HEARTH(75f, "Hearth"),
-    CIABATTA(85f, "Ciabatta"),
+enum class HydrationPreset(val percent: Float, val label: String, val style: String) {
+    STIFF(60f, "60%", "Stiff"),
+    STANDARD(65f, "65%", "Standard"),
+    HEARTH(75f, "75%", "Hearth"),
+    CIABATTA(85f, "85%", "Ciabatta"),
 }

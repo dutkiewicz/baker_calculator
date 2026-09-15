@@ -13,15 +13,16 @@ import androidx.lifecycle.lifecycleScope
 import com.bakersmath.data.ThemeRepository
 import com.bakersmath.ui.BakersMathScreen
 import com.bakersmath.ui.theme.BreadTheme
-import com.bakersmath.viewmodel.BakersMathEvent
 import com.bakersmath.viewmodel.ViewModelFactory
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
 private val ComponentActivity.dataStore by preferencesDataStore(name = "settings")
 
 class MainActivity : ComponentActivity() {
-
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
@@ -44,9 +45,11 @@ class MainActivity : ComponentActivity() {
         }
 
         lifecycleScope.launch {
-            viewModel.uiState.collect { state ->
-                themeRepository.setDarkMode(state.isDarkMode)
-            }
+            viewModel.uiState
+                .map { it.isDarkMode }
+                .distinctUntilChanged()
+                .drop(1)
+                .collect { isDark -> themeRepository.setDarkMode(isDark) }
         }
     }
 }

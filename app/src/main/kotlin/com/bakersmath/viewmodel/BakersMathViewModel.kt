@@ -11,7 +11,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
 class BakersMathViewModel(isDarkMode: Boolean = false) : ViewModel() {
-
     private val _uiState = MutableStateFlow(UiState(isDarkMode = isDarkMode))
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
 

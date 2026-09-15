@@ -4,7 +4,6 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class RecipeCalculatorTest {
-
     @Test
     fun `flour 500 hydration 65 produces correct recipe`() {
         val result = calculateIngredients(500, 65f)
@@ -29,7 +28,7 @@ class RecipeCalculatorTest {
     fun `flour 500 hydration 75 produces correct recipe`() {
         val result = calculateIngredients(500, 75f)
         assertEquals(375, result.waterGrams)
-        assertEquals(895, result.totalGrams)
+        assertEquals(890, result.totalGrams)
         assertEquals(2, result.estimatedLoaves)
     }
 
@@ -45,5 +44,36 @@ class RecipeCalculatorTest {
         val result = calculateIngredients(200, 65f)
         assertEquals(336, result.totalGrams)
         assertEquals(1, result.estimatedLoaves)
+    }
+
+    @Test
+    fun `rounds weights to nearest gram`() {
+        val result = calculateIngredients(250, 65f)
+        assertEquals(163, result.waterGrams)
+        assertEquals(5, result.saltGrams)
+        assertEquals(3, result.yeastGrams)
+        assertEquals(421, result.totalGrams)
+    }
+
+    @Test
+    fun `minimum flour and hydration clamp computes without negative values`() {
+        val result = calculateIngredients(1, 45f)
+        assertEquals(0, result.waterGrams)
+        assertEquals(1, result.totalGrams)
+        assertEquals(1, result.estimatedLoaves)
+    }
+
+    @Test
+    fun `maximum hydration 100 percent doubles the water weight`() {
+        val result = calculateIngredients(500, 100f)
+        assertEquals(500, result.waterGrams)
+        assertEquals(1015, result.totalGrams)
+        assertEquals(3, result.estimatedLoaves)
+    }
+
+    @Test
+    fun `loaf size defaults to the configured constant`() {
+        val result = calculateIngredients(500, 65f)
+        assertEquals(DEFAULT_LOAF_SIZE_GRAMS, result.loafSizeGrams)
     }
 }

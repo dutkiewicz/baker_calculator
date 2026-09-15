@@ -1,22 +1,23 @@
 package com.bakersmath.ui.components
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import com.bakersmath.ui.theme.BreadTheme
 import com.bakersmath.ui.theme.LocalBreadColors
-import androidx.compose.foundation.layout.Column
+import com.bakersmath.ui.theme.PREVIEW_DARK_BACKGROUND
 
 @Composable
 fun FlourInputSection(
@@ -35,38 +36,35 @@ fun FlourInputSection(
                 val digits = raw.filter { it.isDigit() }
                 onFlourChanged(digits)
             },
-            modifier = Modifier.semantics {
-                contentDescription = "Flour weight input"
-            },
+            modifier =
+                Modifier.semantics {
+                    contentDescription = "Flour weight input"
+                },
             textStyle = textStyle.copy(color = colors.textPrimary),
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Number,
-                imeAction = ImeAction.Done,
-            ),
+            keyboardOptions =
+                KeyboardOptions(
+                    keyboardType = KeyboardType.Number,
+                    imeAction = ImeAction.Done,
+                ),
             singleLine = true,
             decorationBox = { innerTextField ->
-                if (flourInput.isEmpty()) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box {
+                        if (flourInput.isEmpty()) {
+                            Text(
+                                text = "0",
+                                style = textStyle,
+                                color = colors.textSecondary,
+                            )
+                        }
+                        innerTextField()
+                    }
                     Text(
-                        text = "0",
+                        text = "g",
                         style = textStyle,
-                        color = colors.textSecondary,
-                    )
-                } else {
-                    // Render the live text with the "g" suffix inline at the same size
-                    Text(
-                        text = buildAnnotatedString {
-                            withStyle(SpanStyle(color = colors.textPrimary)) {
-                                append(flourInput)
-                            }
-                            withStyle(SpanStyle(color = colors.textPrimary)) {
-                                append("g")
-                            }
-                        },
-                        style = textStyle,
+                        color = colors.textPrimary,
                     )
                 }
-                // Keep the real cursor/input active (zero-width overlay)
-                innerTextField()
             },
         )
 
@@ -104,7 +102,11 @@ private fun FlourInputSectionErrorPreview() {
     }
 }
 
-@Preview(name = "FlourInputSection — Dark", showBackground = true, backgroundColor = 0xFF1E1108)
+@Preview(
+    name = "FlourInputSection — Dark",
+    showBackground = true,
+    backgroundColor = PREVIEW_DARK_BACKGROUND,
+)
 @Composable
 private fun FlourInputSectionDarkPreview() {
     BreadTheme(isDarkMode = true) {

@@ -1,21 +1,28 @@
 package com.bakersmath.ui
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
+import android.content.Intent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.bakersmath.domain.YeastType
+import com.bakersmath.domain.buildRecipeShareText
 import com.bakersmath.ui.components.FlourInputSection
 import com.bakersmath.ui.components.HydrationPresets
 import com.bakersmath.ui.components.HydrationSlider
@@ -30,10 +37,14 @@ import com.bakersmath.viewmodel.BakersMathViewModel
 fun BakersMathScreen(viewModel: BakersMathViewModel) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val colors = LocalBreadColors.current
+    val context = LocalContext.current
 
     Box(modifier = Modifier.fillMaxSize().background(colors.backgroundPrimary)) {
         LazyColumn(
-            modifier = Modifier.fillMaxSize(),
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .windowInsetsPadding(WindowInsets.safeDrawing),
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
@@ -86,9 +97,31 @@ fun BakersMathScreen(viewModel: BakersMathViewModel) {
             item {
                 TotalDoughCard(
                     recipe = uiState.recipe,
+                    onShare =
+                        uiState.recipe?.let { recipe ->
+                            {
+                                val text = buildRecipeShareText(recipe, uiState.hydrationPercent)
+                                shareRecipe(context, text)
+                            }
+                        },
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
         }
     }
+}
+
+private fun shareRecipe(
+    context: Context,
+    text: String,
+) {
+    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+    clipboard.setPrimaryClip(ClipData.newPlainText("Baker's Math Recipe", text))
+
+    val intent =
+        Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TEXT, text)
+        }
+    context.startActivity(Intent.createChooser(intent, "Share recipe"))
 }

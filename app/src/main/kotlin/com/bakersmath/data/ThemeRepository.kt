@@ -7,11 +7,9 @@ import androidx.datastore.preferences.core.edit
 import kotlinx.coroutines.flow.first
 
 class ThemeRepository(private val dataStore: DataStore<Preferences>) {
-
     private val darkModeKey = booleanPreferencesKey("dark_mode")
 
-    suspend fun getDarkMode(): Boolean =
-        dataStore.data.first()[darkModeKey] ?: false
+    suspend fun getDarkMode(): Boolean = dataStore.data.first()[darkModeKey] ?: false
 
     suspend fun setDarkMode(dark: Boolean) {
         dataStore.edit { prefs -> prefs[darkModeKey] = dark }

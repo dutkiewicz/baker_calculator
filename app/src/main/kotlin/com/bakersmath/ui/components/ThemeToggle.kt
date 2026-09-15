@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.bakersmath.ui.theme.BreadTheme
 import com.bakersmath.ui.theme.LocalBreadColors
+import com.bakersmath.ui.theme.PREVIEW_DARK_BACKGROUND
 
 @Composable
 fun ThemeToggle(
@@ -43,7 +44,7 @@ private fun ThemeToggleLightPreview() {
     }
 }
 
-@Preview(name = "ThemeToggle — Dark mode (moon shown)", showBackground = true, backgroundColor = 0xFF1E1108)
+@Preview(name = "ThemeToggle — Dark mode (moon shown)", showBackground = true, backgroundColor = PREVIEW_DARK_BACKGROUND)
 @Composable
 private fun ThemeToggleDarkPreview() {
     BreadTheme(isDarkMode = true) {

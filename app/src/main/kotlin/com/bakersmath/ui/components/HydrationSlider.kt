@@ -14,6 +14,7 @@ import com.bakersmath.domain.HYDRATION_MAX
 import com.bakersmath.domain.HYDRATION_MIN
 import com.bakersmath.ui.theme.BreadTheme
 import com.bakersmath.ui.theme.LocalBreadColors
+import com.bakersmath.ui.theme.PREVIEW_DARK_BACKGROUND
 import kotlin.math.roundToInt
 
 @Composable
@@ -35,13 +36,15 @@ fun HydrationSlider(
             value = hydrationPercent,
             onValueChange = onHydrationChanged,
             valueRange = HYDRATION_MIN..HYDRATION_MAX,
-            colors = SliderDefaults.colors(
-                thumbColor = colors.accent,
-                activeTrackColor = colors.accent,
-            ),
-            modifier = Modifier.semantics {
-                contentDescription = "Hydration slider, ${hydrationPercent.roundToInt()} percent"
-            },
+            colors =
+                SliderDefaults.colors(
+                    thumbColor = colors.accent,
+                    activeTrackColor = colors.accent,
+                ),
+            modifier =
+                Modifier.semantics {
+                    contentDescription = "Hydration slider, ${hydrationPercent.roundToInt()} percent"
+                },
         )
     }
 }
@@ -57,7 +60,7 @@ private fun HydrationSliderLightPreview() {
     }
 }
 
-@Preview(name = "HydrationSlider — Dark", showBackground = true, backgroundColor = 0xFF1E1108)
+@Preview(name = "HydrationSlider — Dark", showBackground = true, backgroundColor = PREVIEW_DARK_BACKGROUND)
 @Composable
 private fun HydrationSliderDarkPreview() {
     BreadTheme(isDarkMode = true) {

@@ -21,6 +21,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.bakersmath.ui.theme.BreadTheme
 import com.bakersmath.ui.theme.LocalBreadColors
+import com.bakersmath.ui.theme.PREVIEW_DARK_BACKGROUND
 
 @Composable
 fun IngredientRow(
@@ -34,19 +35,21 @@ fun IngredientRow(
     val colors = LocalBreadColors.current
 
     Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .semantics(mergeDescendants = true) {},
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .semantics(mergeDescendants = true) {},
         horizontalArrangement = androidx.compose.foundation.layout.Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
         // Left: dot + name/subtitle
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box(
-                modifier = Modifier
-                    .size(12.dp)
-                    .clip(CircleShape)
-                    .background(colorDot),
+                modifier =
+                    Modifier
+                        .size(12.dp)
+                        .clip(CircleShape)
+                        .background(colorDot),
             )
             Spacer(modifier = Modifier.width(8.dp))
             Column {
@@ -96,7 +99,7 @@ private fun IngredientRowWithSubtitlePreview() {
     }
 }
 
-@Preview(name = "IngredientRow — no subtitle, Dark", showBackground = true, backgroundColor = 0xFF1E1108)
+@Preview(name = "IngredientRow — no subtitle, Dark", showBackground = true, backgroundColor = PREVIEW_DARK_BACKGROUND)
 @Composable
 private fun IngredientRowNoSubtitleDarkPreview() {
     BreadTheme(isDarkMode = true) {

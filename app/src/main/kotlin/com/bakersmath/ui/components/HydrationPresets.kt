@@ -8,12 +8,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.bakersmath.domain.HydrationPreset
 import com.bakersmath.ui.theme.BreadTheme
 import com.bakersmath.ui.theme.LocalBreadColors
-import kotlin.math.roundToInt
+import com.bakersmath.ui.theme.PREVIEW_DARK_BACKGROUND
 
 @Composable
 fun HydrationPresets(
@@ -22,6 +24,7 @@ fun HydrationPresets(
     modifier: Modifier = Modifier,
 ) {
     val colors = LocalBreadColors.current
+    val haptic = LocalHapticFeedback.current
 
     Row(
         modifier = modifier,
@@ -31,22 +34,27 @@ fun HydrationPresets(
             val selected = activePreset == preset
             FilterChip(
                 selected = selected,
-                onClick = { onPresetSelected(preset) },
-                label = {
-                    Text("${preset.percent.roundToInt()}% · ${preset.style}")
+                onClick = {
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    onPresetSelected(preset)
                 },
-                colors = FilterChipDefaults.filterChipColors(
-                    containerColor = Color.Transparent,
-                    labelColor = colors.textPrimary,
-                    selectedContainerColor = colors.chipSelectedBackground,
-                    selectedLabelColor = colors.chipSelectedText,
-                ),
-                border = FilterChipDefaults.filterChipBorder(
-                    enabled = true,
-                    selected = selected,
-                    borderColor = colors.chipOutlineColor,
-                    selectedBorderColor = Color.Transparent,
-                ),
+                label = {
+                    Text("${preset.label} · ${preset.style}")
+                },
+                colors =
+                    FilterChipDefaults.filterChipColors(
+                        containerColor = Color.Transparent,
+                        labelColor = colors.textPrimary,
+                        selectedContainerColor = colors.chipSelectedBackground,
+                        selectedLabelColor = colors.chipSelectedText,
+                    ),
+                border =
+                    FilterChipDefaults.filterChipBorder(
+                        enabled = true,
+                        selected = selected,
+                        borderColor = colors.chipOutlineColor,
+                        selectedBorderColor = Color.Transparent,
+                    ),
             )
         }
     }
@@ -63,7 +71,11 @@ private fun HydrationPresetsPreview() {
     }
 }
 
-@Preview(name = "HydrationPresets — Dark, HEARTH selected", showBackground = true, backgroundColor = 0xFF1E1108)
+@Preview(
+    name = "HydrationPresets — Dark, HEARTH selected",
+    showBackground = true,
+    backgroundColor = PREVIEW_DARK_BACKGROUND,
+)
 @Composable
 private fun HydrationPresetsDarkPreview() {
     BreadTheme(isDarkMode = true) {

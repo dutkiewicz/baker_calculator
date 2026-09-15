@@ -7,7 +7,10 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
-fun BreadTheme(isDarkMode: Boolean, content: @Composable () -> Unit) {
+fun BreadTheme(
+    isDarkMode: Boolean,
+    content: @Composable () -> Unit,
+) {
     val colors = if (isDarkMode) DarkBreadColors else LightBreadColors
     CompositionLocalProvider(LocalBreadColors provides colors) {
         MaterialTheme(typography = BreadTypography, content = content)
@@ -25,7 +28,7 @@ private fun BreadThemeLightPreview() {
     }
 }
 
-@Preview(name = "BreadTheme — Dark", showBackground = true, backgroundColor = 0xFF1E1108)
+@Preview(name = "BreadTheme — Dark", showBackground = true, backgroundColor = PREVIEW_DARK_BACKGROUND)
 @Composable
 private fun BreadThemeDarkPreview() {
     BreadTheme(isDarkMode = true) {
