@@ -1,0 +1,171 @@
+# Release pipeline for the BakersMath Android app.
+#
+# Run manually from the Actions UI, selecting an existing git tag (e.g.
+# `v1.0.0`). The workflow checks out that tag, builds an installable APK and
+# creates or updates the matching GitHub Release with the APK attached.
+#
+# Signing: the `release` build type has no `signingConfig`, so `assembleRelease`
+# emits `app-release-unsigned.apk`, which is NOT installable. When the signing
+# secrets below are configured the workflow aligns + signs that APK with
+# apksigner; otherwise it falls back to the debug-signed `app-debug.apk` so a
+# working, installable APK is always attached. The job never fails just because
+# signing secrets are absent.
+name: Release
+
+on:
+  # Manually triggered from the Actions UI against an existing git tag.
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Existing git tag to release (e.g. v1.0.0)'
+        required: true
+        type: string
+
+# Serialize runs for the same tag so two releases cannot race. Never cancel an
+# in-flight release; let it finish.
+concurrency:
+  group: release-${{ inputs.tag }}
+  cancel-in-progress: false
+
+# Required to create/update the GitHub Release and upload its assets.
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build and publish APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    # Expose the signing secrets to the job so steps can branch on whether
+    # signing is available via the `env` context (the `secrets` context is not
+    # allowed in `if` expressions). Empty when the secrets are not configured.
+    env:
+      SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
+      KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+      KEY_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
+      KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+
+    steps:
+      # 1. Check out the selected tag (fails if it does not exist). Full history
+      #    so changelog/tag information is available.
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag }}
+          fetch-depth: 0
+
+      # 2. Install the JDK the project's Gradle toolchain requires.
+      #    JDK 25 (Temurin) is used on purpose: it matches
+      #    `jvmToolchain(25)` in app/build.gradle.kts and avoids JDK 26,
+      #    which breaks AGP's JdkImageTransform/jlink. `cache: gradle`
+      #    wires up the wrapper cache.
+      - name: Set up JDK 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: gradle
+
+      # 3. Enable Gradle build/configuration caching and richer CI summaries.
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      # 4. Ensure the wrapper is executable on the checked-out tree.
+      - name: Make Gradle wrapper executable
+        run: chmod +x ./gradlew
+
+      # 5. Build the release APK. This is intentionally UNSIGNED: the release
+      #    build type defines no signingConfig, so the output lives at
+      #    app/build/outputs/apk/release/app-release-unsigned.apk. It is signed
+      #    in the next step when keystore secrets are present.
+      - name: Build release APK (unsigned)
+        run: ./gradlew assembleRelease --stacktrace
+
+      # 6a. Preferred path: sign the release APK with the keystore supplied via
+      #     repository secrets. `zipalign` runs before `apksigner` because v2
+      #     signatures are invalidated by a later alignment pass. The resulting
+      #     installable APK path is exported to later steps via $GITHUB_ENV.
+      - name: Sign release APK with keystore secrets
+        if: ${{ env.SIGNING_KEY != '' }}
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts
+
+          # Resolve the Android SDK shipped on the runner.
+          SDK_DIR="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}"
+          if [ -z "$SDK_DIR" ]; then
+            echo "::error::Neither ANDROID_HOME nor ANDROID_SDK_ROOT is set."
+            exit 1
+          fi
+
+          # Pick the newest installed build-tools.
+          BUILD_TOOLS=$(ls -d "$SDK_DIR"/build-tools/*/ | sort -V | tail -n 1)
+
+          # Decode the base64 keystore into a temporary file.
+          KEYSTORE_FILE="$RUNNER_TEMP/release.keystore"
+          echo "$SIGNING_KEY" | base64 -d > "$KEYSTORE_FILE"
+
+          UNSIGNED_APK="app/build/outputs/apk/release/app-release-unsigned.apk"
+          ALIGNED_APK="$RUNNER_TEMP/app-release-aligned.apk"
+          SIGNED_APK="artifacts/app-release-signed.apk"
+
+          # 1) Align, 2) sign, 3) verify.
+          "$BUILD_TOOLS/zipalign" -f -p 4 "$UNSIGNED_APK" "$ALIGNED_APK"
+          "$BUILD_TOOLS/apksigner" sign \
+            --ks "$KEYSTORE_FILE" \
+            --ks-key-alias "$KEY_ALIAS" \
+            --ks-pass "pass:$KEY_STORE_PASSWORD" \
+            --key-pass "pass:$KEY_PASSWORD" \
+            --out "$SIGNED_APK" \
+            "$ALIGNED_APK"
+          "$BUILD_TOOLS/apksigner" verify --verbose "$SIGNED_APK"
+
+          # Clean up the decoded keystore as soon as it is no longer needed.
+          rm -f "$KEYSTORE_FILE"
+
+          echo "APK_ASSET=$SIGNED_APK" >> "$GITHUB_ENV"
+
+      # 6b. Fallback path: no signing secrets, so build the debug variant. The
+      #     debug APK is signed with the auto-generated debug keystore and is
+      #     therefore installable. This keeps releases working with zero setup.
+      - name: Build debug APK fallback
+        if: ${{ env.SIGNING_KEY == '' }}
+        run: |
+          set -euo pipefail
+          ./gradlew assembleDebug --stacktrace
+          mkdir -p artifacts
+          cp app/build/outputs/apk/debug/app-debug.apk artifacts/app-debug.apk
+          echo "APK_ASSET=artifacts/app-debug.apk" >> "$GITHUB_ENV"
+          echo "::warning::Signing secrets are not configured; attaching the debug-signed APK as an installable fallback."
+
+      # 7. Print sizes and hashes for traceability.
+      - name: Report APK size and SHA-256
+        run: |
+          set -euo pipefail
+          ls -lh "$APK_ASSET"
+          if command -v sha256sum >/dev/null 2>&1; then
+            sha256sum "$APK_ASSET"
+          else
+            shasum -a 256 "$APK_ASSET"
+          fi
+
+      # 8. Always publish the installable APK as a workflow artifact.
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-apk
+          path: ${{ env.APK_ASSET }}
+          if-no-files-found: error
+          retention-days: 14
+
+      # 9. Create or update the GitHub Release for the selected tag and attach
+      #    the APK. `generate_release_notes` builds the changelog from the full
+      #    history fetched above.
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ inputs.tag }}
+          files: ${{ env.APK_ASSET }}
+          generate_release_notes: true
+          fail_on_unmatched_files: true
