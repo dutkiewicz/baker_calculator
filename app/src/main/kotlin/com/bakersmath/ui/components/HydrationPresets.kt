@@ -4,9 +4,12 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -38,7 +41,7 @@ fun HydrationPresets(
     val haptic = LocalHapticFeedback.current
 
     Row(
-        modifier = modifier,
+        modifier = modifier.height(IntrinsicSize.Min),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         HydrationPreset.entries.forEach { preset ->
@@ -49,16 +52,17 @@ fun HydrationPresets(
                     haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                     onPresetSelected(preset)
                 },
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(1f).fillMaxHeight(),
             )
         }
     }
 }
 
 /**
- * A compact, single-line chip. Unlike Material's [androidx.compose.material3.FilterChip]
- * the horizontal padding is small enough that the labels fit on narrow phones such as
- * the Samsung Galaxy S25, while the clickable area still meets the 48dp touch target.
+ * A compact chip whose label wraps onto a second line when the phone is narrow
+ * (such as 320dp) or the system font scale is large. All chips share the height
+ * of the tallest label so the row stays even, and the clickable area still meets
+ * the 48dp touch target.
  */
 @Composable
 private fun HydrationChip(
@@ -73,7 +77,7 @@ private fun HydrationChip(
     Box(
         modifier =
             modifier
-                .height(48.dp)
+                .heightIn(min = 48.dp)
                 .selectable(
                     selected = selected,
                     role = Role.RadioButton,
@@ -85,7 +89,8 @@ private fun HydrationChip(
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .height(40.dp)
+                    .fillMaxHeight()
+                    .heightIn(min = 40.dp)
                     .clip(shape)
                     .background(
                         if (selected) colors.chipSelectedBackground else Color.Transparent,
@@ -101,11 +106,11 @@ private fun HydrationChip(
                 text = "${preset.label} · ${preset.style}",
                 style = MaterialTheme.typography.labelMedium,
                 color = if (selected) colors.chipSelectedText else colors.textPrimary,
-                maxLines = 1,
-                softWrap = false,
+                maxLines = 2,
+                softWrap = true,
                 overflow = TextOverflow.Ellipsis,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.padding(horizontal = 6.dp),
+                modifier = Modifier.padding(horizontal = 6.dp, vertical = 4.dp),
             )
         }
     }
