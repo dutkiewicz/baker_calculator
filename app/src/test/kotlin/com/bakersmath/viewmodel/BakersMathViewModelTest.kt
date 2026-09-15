@@ -165,9 +165,9 @@ class BakersMathViewModelTest {
     fun `preset selection without flour keeps recipe null`() =
         runTest {
             val vm = viewModel()
-            vm.onEvent(BakersMathEvent.PresetSelected(HydrationPreset.CIABATTA))
+            vm.onEvent(BakersMathEvent.PresetSelected(HydrationPreset.HEARTH))
             assertNull(vm.uiState.value.recipe)
-            assertEquals(HydrationPreset.CIABATTA, vm.uiState.value.activePreset)
+            assertEquals(HydrationPreset.HEARTH, vm.uiState.value.activePreset)
         }
 
     @Test

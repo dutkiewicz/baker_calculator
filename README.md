@@ -9,7 +9,7 @@ Everything works offline. There is no account and no internet permission.
 
 - Enter flour in grams. All other amounts update as you type.
 - Water amount based on hydration. Slider range is 45% to 100%, default 65%.
-- Four quick presets: 60% Stiff, 65% Standard, 75% Hearth, 85% Ciabatta.
+- Three quick presets: 60% Stiff, 65% Standard, 75% Hearth.
 - Shows all four ingredients with their percent and grams.
 - Shows total dough weight and an estimate of how many 450g loaves it makes.
 - Light and dark theme. The choice is saved between sessions.
