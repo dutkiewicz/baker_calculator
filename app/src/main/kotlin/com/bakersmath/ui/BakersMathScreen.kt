@@ -7,14 +7,16 @@ import android.content.Intent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -40,73 +42,72 @@ fun BakersMathScreen(viewModel: BakersMathViewModel) {
     val context = LocalContext.current
 
     Box(modifier = Modifier.fillMaxSize().background(colors.backgroundPrimary)) {
-        LazyColumn(
+        Column(
             modifier =
                 Modifier
                     .fillMaxSize()
-                    .windowInsetsPadding(WindowInsets.safeDrawing),
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+                    .windowInsetsPadding(WindowInsets.safeDrawing)
+                    .padding(horizontal = 16.dp, vertical = 16.dp),
         ) {
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End,
-                ) {
-                    ThemeToggle(
-                        isDarkMode = uiState.isDarkMode,
-                        onToggle = { viewModel.onEvent(BakersMathEvent.ThemeToggled) },
-                    )
-                }
-            }
-
-            item {
-                FlourInputSection(
-                    flourInput = uiState.flourInput,
-                    isError = uiState.flourInputError,
-                    onFlourChanged = { viewModel.onEvent(BakersMathEvent.FlourChanged(it)) },
-                    modifier = Modifier.fillMaxWidth(),
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End,
+            ) {
+                ThemeToggle(
+                    isDarkMode = uiState.isDarkMode,
+                    onToggle = { viewModel.onEvent(BakersMathEvent.ThemeToggled) },
                 )
             }
 
-            item {
-                HydrationSlider(
-                    hydrationPercent = uiState.hydrationPercent,
-                    onHydrationChanged = { viewModel.onEvent(BakersMathEvent.HydrationChanged(it)) },
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            }
+            Spacer(Modifier.height(16.dp))
 
-            item {
-                HydrationPresets(
-                    activePreset = uiState.activePreset,
-                    onPresetSelected = { viewModel.onEvent(BakersMathEvent.PresetSelected(it)) },
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            }
+            FlourInputSection(
+                flourInput = uiState.flourInput,
+                isError = uiState.flourInputError,
+                onFlourChanged = { viewModel.onEvent(BakersMathEvent.FlourChanged(it)) },
+                modifier = Modifier.fillMaxWidth(),
+            )
 
-            item {
-                IngredientsList(
-                    recipe = uiState.recipe,
-                    hydrationPercent = uiState.hydrationPercent,
-                    yeastType = YeastType.INSTANT_DRY,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            }
+            Spacer(Modifier.height(16.dp))
 
-            item {
-                TotalDoughCard(
-                    recipe = uiState.recipe,
-                    onShare =
-                        uiState.recipe?.let { recipe ->
-                            {
-                                val text = buildRecipeShareText(recipe, uiState.hydrationPercent)
-                                shareRecipe(context, text)
-                            }
-                        },
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            }
+            HydrationSlider(
+                hydrationPercent = uiState.hydrationPercent,
+                onHydrationChanged = { viewModel.onEvent(BakersMathEvent.HydrationChanged(it)) },
+                modifier = Modifier.fillMaxWidth(),
+            )
+
+            Spacer(Modifier.height(16.dp))
+
+            HydrationPresets(
+                activePreset = uiState.activePreset,
+                onPresetSelected = { viewModel.onEvent(BakersMathEvent.PresetSelected(it)) },
+                modifier = Modifier.fillMaxWidth(),
+            )
+
+            // Flexible gap: the controls stay at the top and the calculations
+            // are pushed to the bottom of the screen.
+            Spacer(Modifier.weight(1f))
+
+            IngredientsList(
+                recipe = uiState.recipe,
+                hydrationPercent = uiState.hydrationPercent,
+                yeastType = YeastType.INSTANT_DRY,
+                modifier = Modifier.fillMaxWidth(),
+            )
+
+            Spacer(Modifier.height(16.dp))
+
+            TotalDoughCard(
+                recipe = uiState.recipe,
+                onShare =
+                    uiState.recipe?.let { recipe ->
+                        {
+                            val text = buildRecipeShareText(recipe, uiState.hydrationPercent)
+                            shareRecipe(context, text)
+                        }
+                    },
+                modifier = Modifier.fillMaxWidth(),
+            )
         }
     }
 }

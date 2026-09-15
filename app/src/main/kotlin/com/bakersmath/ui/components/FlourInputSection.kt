@@ -3,6 +3,7 @@ package com.bakersmath.ui.components
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.MaterialTheme
@@ -14,6 +15,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import com.bakersmath.ui.theme.BreadTheme
 import com.bakersmath.ui.theme.LocalBreadColors
@@ -37,10 +39,12 @@ fun FlourInputSection(
                 onFlourChanged(digits)
             },
             modifier =
-                Modifier.semantics {
-                    contentDescription = "Flour weight input"
-                },
-            textStyle = textStyle.copy(color = colors.textPrimary),
+                Modifier
+                    .fillMaxWidth()
+                    .semantics {
+                        contentDescription = "Flour weight input"
+                    },
+            textStyle = textStyle.copy(color = colors.textPrimary, textAlign = TextAlign.End),
             keyboardOptions =
                 KeyboardOptions(
                     keyboardType = KeyboardType.Number,
@@ -48,13 +52,23 @@ fun FlourInputSection(
                 ),
             singleLine = true,
             decorationBox = { innerTextField ->
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    // The number is right-aligned and the "g" unit sits flush
+                    // against it on the right edge of the screen.
+                    Box(
+                        modifier = Modifier.weight(1f),
+                        contentAlignment = Alignment.CenterEnd,
+                    ) {
                         if (flourInput.isEmpty()) {
                             Text(
                                 text = "0",
                                 style = textStyle,
                                 color = colors.textSecondary,
+                                textAlign = TextAlign.End,
+                                modifier = Modifier.fillMaxWidth(),
                             )
                         }
                         innerTextField()
@@ -73,6 +87,8 @@ fun FlourInputSection(
                 text = "Max 99,999g",
                 style = MaterialTheme.typography.bodyMedium,
                 color = colors.textSecondary,
+                textAlign = TextAlign.End,
+                modifier = Modifier.fillMaxWidth(),
             )
         }
     }
