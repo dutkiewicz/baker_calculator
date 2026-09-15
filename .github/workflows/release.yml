@@ -1,8 +1,9 @@
 # Release pipeline for the BakersMath Android app.
 #
-# Run manually from the Actions UI, selecting an existing git tag (e.g.
-# `v1.0.0`). The workflow checks out that tag, builds an installable APK and
-# creates or updates the matching GitHub Release with the APK attached.
+# Runs automatically when a tag is pushed or when a GitHub Release is published,
+# and can also be run on demand from the Actions UI with an existing tag. It
+# checks out that tag, builds an installable APK and creates or updates the
+# matching GitHub Release with the APK attached.
 #
 # Signing: the `release` build type has no `signingConfig`, so `assembleRelease`
 # emits `app-release-unsigned.apk`, which is NOT installable. When the signing
@@ -13,18 +14,25 @@
 name: Release
 
 on:
-  # Manually triggered from the Actions UI against an existing git tag.
+  # Any tag push, e.g. 0.1.0 or v1.0.0.
+  push:
+    tags:
+      - '*'
+  # A Release published (created by hand) from the GitHub UI.
+  release:
+    types: [published]
+  # Manual runs from the Actions UI, choosing an existing tag.
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Existing git tag to release (e.g. v1.0.0)'
+        description: 'Existing git tag to release (e.g. 0.1.0)'
         required: true
         type: string
 
 # Serialize runs for the same tag so two releases cannot race. Never cancel an
 # in-flight release; let it finish.
 concurrency:
-  group: release-${{ inputs.tag }}
+  group: release-${{ inputs.tag || github.event.release.tag_name || github.ref_name }}
   cancel-in-progress: false
 
 # Required to create/update the GitHub Release and upload its assets.
@@ -52,7 +60,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.tag }}
+          ref: ${{ inputs.tag || github.event.release.tag_name || github.ref_name }}
           fetch-depth: 0
 
       # 2. Install the JDK the project's Gradle toolchain requires.
@@ -165,7 +173,7 @@ jobs:
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ inputs.tag }}
+          tag_name: ${{ inputs.tag || github.event.release.tag_name || github.ref_name }}
           files: ${{ env.APK_ASSET }}
           generate_release_notes: true
           fail_on_unmatched_files: true

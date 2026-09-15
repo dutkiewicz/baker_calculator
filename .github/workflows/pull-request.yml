@@ -58,13 +58,16 @@ jobs:
       # 5. Run the full quality gate in a single invocation so the Gradle
       #    daemon is reused across tasks. `--stacktrace` keeps failures
       #    diagnosable; the daemon is intentionally left enabled because
-      #    setup-gradle manages caching and lifecycle.
-      - name: Run quality gate (ktlint, Android lint, unit tests, assemble)
+      #    setup-gradle manages caching and lifecycle. The screenshot
+      #    validation compares the Compose previews against the committed
+      #    reference images for the supported device matrix.
+      - name: Run quality gate (ktlint, Android lint, unit tests, screenshots, assemble)
         run: >
           ./gradlew
           ktlintCheck
           lintDebug
           testDebugUnitTest
+          validateDebugScreenshotTest
           assembleDebug
           --stacktrace
 
@@ -86,5 +89,18 @@ jobs:
           path: |
             app/build/reports/lint-results-*.html
             app/build/reports/ktlint/
+          if-no-files-found: ignore
+          retention-days: 7
+
+      # Publish the screenshot report plus the rendered/diff images so a
+      # device-fit regression can be inspected without re-running locally.
+      - name: Upload screenshot test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshot-test-reports
+          path: |
+            app/build/reports/screenshotTest/
+            app/build/outputs/screenshotTest-results/
           if-no-files-found: ignore
           retention-days: 7

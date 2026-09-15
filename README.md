@@ -67,7 +67,18 @@ You need JDK 25 and the Android SDK.
 ./gradlew testDebugUnitTest  # unit tests
 ./gradlew ktlintCheck        # code style
 ./gradlew lintDebug          # Android Lint
+./gradlew updateDebugScreenshotTest    # regenerate device screenshots
+./gradlew validateDebugScreenshotTest  # compare against committed screenshots
 ```
+
+## Device screenshots
+
+The screen is rendered at a matrix of common Android device sizes (320dp small
+phone, Galaxy S24, Galaxy A54, Pixel 8, Pixel 8 Pro, foldable cover and inner
+screens, and a tablet), in light and dark mode, with large-font variants. The
+reference images live in `app/src/screenshotTestDebug/reference/` and are checked
+by `validateDebugScreenshotTest` in CI. Add or change previews in
+`app/src/screenshotTest/kotlin/com/bakersmath/ui/screenshots/`.
 
 ## CI and releases
 
