@@ -1,5 +1,7 @@
 # Baker's Math
 
+![baker_math_jumbotron.jpg](docs/img/baker_math_jumbotron.jpg)![baker-math-jumbotron]
+
 A small Android app for bread baking. You type the flour weight, and the app
 shows how much water, salt, and yeast you need. It uses baker's percentages.
 
